@@ -66,7 +66,7 @@ def run_experiment(network_scenario_path: str, run_number: int):
 
     print(f"Network scenario memory usage: {res['mem_usage']} MB")
 
-    results_directory = os.path.join("results", os.path.split(os.path.abspath(network_scenario_path))[-1])
+    results_directory = os.path.join("results", os.path.split(os.path.abspath(network_scenario_path))[-1], sys.platform)
     os.makedirs(results_directory, exist_ok=True)
     result_path = os.path.join(results_directory, f"run_{run_number}.json")
     with open(result_path, "w") as results_file:
@@ -104,12 +104,12 @@ if __name__ == '__main__':
     runs = args.runs if args.runs else 3
 
     if args.network_scenario:
-        print(f"Running experiments on: {args.network_scenario}...")
+        print(f"Running experiments on: `{args.network_scenario}`")
         for run  in range(runs):
             print(f"Starting run {run}...")
             run_experiment(args.network_scenario, run)
     elif args.all_scenarios:
-        print(f"Running experiments on network scenarios in: {args.all_scenarios}...")
+        print(f"Running experiments on network scenarios in: `{args.all_scenarios}`")
         for scenario in os.listdir(args.all_scenarios):
             scenario_path = os.path.join(args.all_scenarios, scenario)
             print(f"Running experiments on: {scenario_path}...")
