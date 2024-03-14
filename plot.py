@@ -5,6 +5,18 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+platform_to_label = {
+    "win32": "windows",
+    "linux": "linux",
+    "osx": "osx"
+}
+
+platform_to_color = {
+    "linux": "orange",
+    "win32": "blue",
+    "osx": "green"
+}
+
 
 def extract_bars_values(path: str, field_name: str):
     results = {}
@@ -28,7 +40,7 @@ def extract_bars_values(path: str, field_name: str):
     return results
 
 
-def plot_bars(parsed_results, colors, ax):
+def plot_bars(parsed_results, ax):
     x = np.arange(len(parsed_results["linux"].keys()))  # the label locations
     width = 0.25  # the width of the bars
     multiplier = 0
@@ -37,24 +49,21 @@ def plot_bars(parsed_results, colors, ax):
         values_to_plot = list(map(lambda result: result["y"], platform_result.values()))
         errors_to_plot = list(map(lambda result: result["dy"], platform_result.values()))
         offset = width * multiplier
-        rects = ax.bar(x + offset, values_to_plot, width, yerr=errors_to_plot,  label=platform, color=colors[platform],
-                       alpha=0.8, edgecolor='black', linewidth=1)
+        rects = ax.bar(x + offset, values_to_plot, width, yerr=errors_to_plot, label=platform_to_label[platform],
+                       color=platform_to_color[platform], alpha=0.8, edgecolor='black', linewidth=1)
         ax.bar_label(rects, padding=3)
         multiplier += 1
 
     ax.set_xticks(x + width, parsed_results["linux"].keys())
 
+
 def plot_memory_usage(path: str):
     parsed_results = extract_bars_values(path, "mem_usage")
 
     fig, ax = plt.subplots(layout='constrained')
-    colors = {
-        "linux": "orange",
-        "windows": "blue",
-        "osx": "green"
-    }
 
-    plot_bars(parsed_results, colors, ax)
+
+    plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Memory Usage (MB)')
     ax.set_title('Network Scenarios resource usage')
@@ -74,7 +83,7 @@ def plot_startup_time(path: str):
         "osx": "green"
     }
 
-    plot_bars(parsed_results, colors, ax)
+    plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Startup Time (sec)')
     ax.set_title('Network Scenarios Startup Time')
