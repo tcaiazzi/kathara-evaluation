@@ -44,6 +44,7 @@ def get_network_scenario_memory_usage(network_scenario: Lab):
         stat: DockerMachineStats
         result["mem_usage"] += extract_mem_usage_and_convert(stat.mem_usage)
         result["cpu_usage"] += extract_cpu_usage(stat.cpu_usage)
+        print(f"{stat.name}: {stat.mem_usage}")
 
     return result
 
@@ -96,8 +97,6 @@ if __name__ == '__main__':
         type=int,
         required=False
     )
-
-    Setting.get_instance().load_from_dict({"network_plugin": "kathara/katharanp"})
 
     args = parser.parse_args(sys.argv[1:2])
 

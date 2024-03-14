@@ -50,8 +50,10 @@ def plot_bars(parsed_results, ax):
         errors_to_plot = list(map(lambda result: result["dy"], platform_result.values()))
         offset = width * multiplier
         rects = ax.bar(x + offset, values_to_plot, width, yerr=errors_to_plot, label=platform_to_label[platform],
-                       color=platform_to_color[platform], alpha=0.8, edgecolor='black', linewidth=1)
-        ax.bar_label(rects, padding=3)
+                       color=platform_to_color[platform], alpha=0.8, edgecolor='black', linewidth=1,
+                       align='center', ecolor='black', capsize=10
+                       )
+        # ax.bar_label(rects, padding=3)
         multiplier += 1
 
     ax.set_xticks(x + width, parsed_results["linux"].keys())
@@ -66,7 +68,6 @@ def plot_memory_usage(path: str):
     plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Memory Usage (MB)')
-    ax.set_title('Network Scenarios resource usage')
     ax.legend(title='Network Scenarios')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
 
@@ -86,7 +87,6 @@ def plot_startup_time(path: str):
     plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Startup Time (sec)')
-    ax.set_title('Network Scenarios Startup Time')
     ax.legend(title='Network Scenarios')
 
     plt.savefig(os.path.join(figures_path, "network_scenario_startup_time.pdf"), format="pdf", bbox_inches='tight')
