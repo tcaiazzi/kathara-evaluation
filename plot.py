@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 platform_to_label = {
     "win32": "windows",
     "linux": "linux",
-    "osx": "osx"
+    "darwin": "osx"
 }
 
 platform_to_color = {
     "linux": "orange",
     "win32": "blue",
-    "osx": "green"
+    "darwin": "green"
 }
 
 
@@ -37,6 +37,7 @@ def extract_bars_values(path: str, field_name: str):
             results[platform][network_scenario_name] = {}
             results[platform][network_scenario_name]["y"] = statistics.mean(values)
             results[platform][network_scenario_name]["dy"] = (statistics.stdev(values))
+
     return results
 
 
@@ -50,7 +51,7 @@ def plot_bars(parsed_results, ax):
         errors_to_plot = list(map(lambda result: result["dy"], platform_result.values()))
         offset = width * multiplier
         rects = ax.bar(x + offset, values_to_plot, width, yerr=errors_to_plot, label=platform_to_label[platform],
-                       color=platform_to_color[platform], alpha=0.8, edgecolor='black', linewidth=1,
+                       color=platform_to_color[platform], edgecolor='black', linewidth=1,
                        align='center', ecolor='black', capsize=10
                        )
         # ax.bar_label(rects, padding=3)
@@ -63,13 +64,13 @@ def plot_memory_usage(path: str):
     parsed_results = extract_bars_values(path, "mem_usage")
 
     fig, ax = plt.subplots(layout='constrained')
-
+    ax.set_axisbelow(True)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
 
     plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Memory Usage (MB)')
-    ax.legend(title='Network Scenarios')
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    ax.legend(title='Operating Systems')
 
     plt.savefig(os.path.join(figures_path, "network_scenario_memory.pdf"), format="pdf", bbox_inches='tight')
 
@@ -78,16 +79,13 @@ def plot_startup_time(path: str):
     parsed_results = extract_bars_values(path, "startup_time")
 
     fig, ax = plt.subplots(layout='constrained')
-    colors = {
-        "linux": "orange",
-        "windows": "blue",
-        "osx": "green"
-    }
+    ax.set_axisbelow(True)
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
 
     plot_bars(parsed_results, ax)
 
     ax.set_ylabel('Startup Time (sec)')
-    ax.legend(title='Network Scenarios')
+    ax.legend(title='Operating Systems')
 
     plt.savefig(os.path.join(figures_path, "network_scenario_startup_time.pdf"), format="pdf", bbox_inches='tight')
 
