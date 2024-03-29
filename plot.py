@@ -11,11 +11,18 @@ platform_to_label = {
     "darwin": "osx"
 }
 
+# platform_to_color = {
+#     "linux": "orange",
+#     "win32": "blue",
+#     "darwin": "green"
+# }
+
 platform_to_color = {
-    "linux": "orange",
-    "win32": "blue",
-    "darwin": "green"
+    "linux": "sandybrown",
+    "win32": "lightblue",
+    "darwin": "lightgreen"
 }
+
 
 
 def extract_bars_values(path: str, field_name: str):
@@ -52,7 +59,7 @@ def plot_bars(parsed_results, ax):
         offset = width * multiplier
         rects = ax.bar(x + offset, values_to_plot, width, yerr=errors_to_plot, label=platform_to_label[platform],
                        color=platform_to_color[platform], edgecolor='black', linewidth=1,
-                       align='center', ecolor='black', capsize=10
+                       align='center', ecolor='black', capsize=10,
                        )
         # ax.bar_label(rects, padding=3)
         multiplier += 1
@@ -66,11 +73,12 @@ def plot_memory_usage(path: str):
     fig, ax = plt.subplots(layout='constrained')
     ax.set_axisbelow(True)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
+    ax.tick_params(axis='both', labelsize=14)
 
     plot_bars(parsed_results, ax)
 
-    ax.set_ylabel('Memory Usage (MB)')
-    ax.legend(title='Operating Systems')
+    ax.set_ylabel('Memory Usage (MB)', fontsize=14)
+    ax.legend(fontsize=14)
 
     plt.savefig(os.path.join(figures_path, "network_scenario_memory.pdf"), format="pdf", bbox_inches='tight')
 
@@ -81,11 +89,11 @@ def plot_startup_time(path: str):
     fig, ax = plt.subplots(layout='constrained')
     ax.set_axisbelow(True)
     plt.grid(axis='y', linestyle='--', alpha=0.7)
-
+    ax.tick_params(axis='both', labelsize=14)
     plot_bars(parsed_results, ax)
 
-    ax.set_ylabel('Startup Time (sec)')
-    ax.legend(title='Operating Systems')
+    ax.set_ylabel('Startup Time (sec)', fontsize=14)
+    ax.legend(fontsize=14)
 
     plt.savefig(os.path.join(figures_path, "network_scenario_startup_time.pdf"), format="pdf", bbox_inches='tight')
 
