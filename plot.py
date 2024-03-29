@@ -24,7 +24,6 @@ platform_to_color = {
 }
 
 
-
 def extract_bars_values(path: str, field_name: str):
     results = {}
     for network_scenario in os.listdir(path):
