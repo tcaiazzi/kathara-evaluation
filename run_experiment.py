@@ -98,7 +98,7 @@ if __name__ == '__main__':
         required=False
     )
 
-    args = parser.parse_args(sys.argv[1:2])
+    args = parser.parse_args(sys.argv[1:])
 
     runs = args.runs if args.runs else 3
 
