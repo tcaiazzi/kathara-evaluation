@@ -1,15 +1,17 @@
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 from datetime import timedelta
 
 from Kathara.manager.Kathara import Kathara
+from Kathara.manager.docker.stats.DockerMachineStats import DockerMachineStats
 from Kathara.model.Lab import Lab
+from Kathara.model.Machine import Machine
 from Kathara.parser.netkit.LabParser import LabParser
 from Kathara.setting.Setting import Setting
-from Kathara.manager.docker.stats.DockerMachineStats import DockerMachineStats
 
 
 def extract_mem_usage_and_convert(mem_usage: str):
@@ -48,14 +50,35 @@ def get_network_scenario_memory_usage(network_scenario: Lab):
 
     return result
 
+
+def open_terminal(device: Machine) -> None:
+    command = (
+        '%s -c "from Kathara.manager.Kathara import Kathara; '
+        "Kathara.get_instance().connect_tty('%s', lab_hash='%s', shell='%s', logs=True)\""
+
+    )
+    command = "{python -m kathara connect -d %s %s}" % (device.lab.fs_path(), device.name)
+    if sys.platform == 'win32':
+        subprocess.Popen(["powershell", "start-process", "powershell", command], start_new_session=True)
+    else:
+        subprocess.Popen([Setting.get_instance().terminal, "-e", command], start_new_session=True)
+
+
 def run_experiment(network_scenario_path: str, run_number: int):
+    print(Setting.get_instance().terminal)
+
+    network_scenario_path = os.path.abspath(network_scenario_path)
+
     Kathara.get_instance().wipe()
 
     start_time = time.monotonic()
 
     network_scenario = LabParser.parse(network_scenario_path)
 
-    deploy_network_scenario(network_scenario)
+    Kathara.get_instance().deploy_lab(lab=network_scenario)
+
+    for machine in network_scenario.machines.values():
+        open_terminal(machine)
 
     end_time = time.monotonic()
     total_time = timedelta(seconds=end_time - start_time).total_seconds()
@@ -67,11 +90,14 @@ def run_experiment(network_scenario_path: str, run_number: int):
 
     print(f"Network scenario memory usage: {res['mem_usage']} MB")
 
+    Kathara.get_instance().undeploy_lab(lab=network_scenario)
+
     results_directory = os.path.join("results", os.path.split(os.path.abspath(network_scenario_path))[-1], sys.platform)
     os.makedirs(results_directory, exist_ok=True)
     result_path = os.path.join(results_directory, f"run_{run_number}.json")
     with open(result_path, "w") as results_file:
         results_file.write(json.dumps(res))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -104,7 +130,7 @@ if __name__ == '__main__':
 
     if args.network_scenario:
         print(f"Running experiments on: `{args.network_scenario}`")
-        for run  in range(runs):
+        for run in range(runs):
             print(f"Starting run {run}...")
             run_experiment(args.network_scenario, run)
     elif args.all_scenarios:
