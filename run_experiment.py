@@ -65,8 +65,6 @@ def open_terminal(device: Machine) -> None:
 
 
 def run_experiment(network_scenario_path: str, run_number: int):
-    print(Setting.get_instance().terminal)
-
     network_scenario_path = os.path.abspath(network_scenario_path)
 
     Kathara.get_instance().wipe()
