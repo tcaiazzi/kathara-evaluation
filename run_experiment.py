@@ -6,6 +6,7 @@ import sys
 import time
 from datetime import timedelta
 
+from Kathara.event.EventDispatcher import EventDispatcher
 from Kathara.manager.Kathara import Kathara
 from Kathara.manager.docker.stats.DockerMachineStats import DockerMachineStats
 from Kathara.model.Lab import Lab
@@ -52,19 +53,37 @@ def get_network_scenario_memory_usage(network_scenario: Lab):
 
 
 def open_terminal(device: Machine) -> None:
-    command = (
-        '%s -c "from Kathara.manager.Kathara import Kathara; '
-        "Kathara.get_instance().connect_tty('%s', lab_hash='%s', shell='%s', logs=True)\""
-
-    )
-    command = "{python -m kathara connect -d %s %s}" % (device.lab.fs_path(), device.name)
     if sys.platform == 'win32':
+        command = "{python -m kathara connect -d %s %s}" % (device.lab.fs_path(), device.name)
         subprocess.Popen(["powershell", "start-process", "powershell", command], start_new_session=True)
+    elif sys.platform == 'darwin':
+        command = "%s -m kathara connect -d %s %s" % (sys.executable, device.lab.fs_path(), device.name)
+        cd_to_lab_path = "cd \"%s\" &&" % device.lab.fs_path() if device.lab.has_host_path() else ""
+        complete_osx_command = "%s clear && %s && exit" % (cd_to_lab_path, command)
+
+        import appscript
+        terminal_app = appscript.app("Terminal")
+        terminal_app.do_script(complete_osx_command)
     else:
+        command = "%s -m kathara connect -d %s %s" % (sys.executable, device.lab.fs_path(), device.name)
         subprocess.Popen([Setting.get_instance().terminal, "-e", command], start_new_session=True)
 
 
+deploy_ended = False
+
+
+class CollectAndUndeploy(object):
+    def run(self) -> None:
+        print("Ended")
+
+        global deploy_ended
+        deploy_ended = True
+
+
 def run_experiment(network_scenario_path: str, run_number: int):
+    global deploy_ended
+    deploy_ended = False
+
     network_scenario_path = os.path.abspath(network_scenario_path)
 
     Kathara.get_instance().wipe()
@@ -77,6 +96,9 @@ def run_experiment(network_scenario_path: str, run_number: int):
 
     for machine in network_scenario.machines.values():
         open_terminal(machine)
+
+    while not deploy_ended:
+        pass
 
     end_time = time.monotonic()
     total_time = timedelta(seconds=end_time - start_time).total_seconds()
@@ -125,6 +147,9 @@ if __name__ == '__main__':
     args = parser.parse_args(sys.argv[1:])
 
     runs = args.runs if args.runs else 3
+
+    collect_and_undeploy = CollectAndUndeploy()
+    EventDispatcher.get_instance().register("machines_deploy_ended", collect_and_undeploy)
 
     if args.network_scenario:
         print(f"Running experiments on: `{args.network_scenario}`")
